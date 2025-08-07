@@ -19,8 +19,14 @@ pipeline {
         stage('Setup Python Environment') {
             steps {
                 script {
-                    // Install Python and create a virtual environment
+                    // Check if python3-venv is installed
                     sh '''
+                    if ! dpkg -l | grep -q python3-venv; then
+                        echo "python3-venv not found, installing..."
+                        sudo apt-get update && sudo apt-get install -y python3-venv
+                    fi
+
+                    # Create a Python virtual environment
                     python3 -m venv ${PYTHON_VIRTUALENV}
                     source ${PYTHON_VIRTUALENV}/bin/activate
                     pip install --upgrade pip
@@ -29,7 +35,6 @@ pipeline {
                 }
             }
         }
-
         stage('Run Python Script') {
             steps {
                 script {
