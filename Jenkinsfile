@@ -1,10 +1,10 @@
 pipeline {
     agent any
-    
+
     environment {
         PYTHON_VENV = "python-venv"
     }
-    
+
     stages {
         stage('Clone') {
             steps {
@@ -14,40 +14,37 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Build') {
             steps {
                 script {
                     echo 'Setting up Python environment...'
-                    
+
                     // Check if python3-venv is installed, if not, skip it
                     sh '''
                     dpkg -l | grep -q python3-venv || echo "python3-venv is already installed"
                     '''
                     
-                    // Create a virtual environment
+                    // Create a virtual environment and activate it using bash
                     sh '''
                     python3 -m venv ${PYTHON_VENV}
-                    source ${PYTHON_VENV}/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
+                    bash -c "source ${PYTHON_VENV}/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"
                     '''
                 }
             }
         }
-        
+
         stage('Test') {
             steps {
                 script {
                     echo 'Running tests...'
                     sh '''
-                    source ${PYTHON_VENV}/bin/activate
-                    pytest --maxfail=1 --disable-warnings -q
+                    bash -c "source ${PYTHON_VENV}/bin/activate && pytest --maxfail=1 --disable-warnings -q"
                     '''
                 }
             }
         }
-        
+
         stage('Deploy') {
             steps {
                 script {
@@ -57,7 +54,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         always {
             echo 'Cleaning up...'
