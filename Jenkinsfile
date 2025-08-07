@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout the code from GitHub repository
-                git branch: "${BRANCH}", credentialsId: "${GITHUB_CREDENTIALS}", url: 'https://github.com/yourusername/yourrepo.git'
+                git branch: "${BRANCH}", credentialsId: "${GITHUB_CREDENTIALS}", url: 'https://github.com/DilipK10/devops.git'
             }
         }
 
