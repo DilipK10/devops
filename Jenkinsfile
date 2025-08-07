@@ -1,84 +1,88 @@
 pipeline {
     agent any
-
+    
     environment {
-        // Environment variables
-        GITHUB_CREDENTIALS = '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'  // Replace with your GitHub credentials ID in Jenkins
-        BRANCH = 'main'  // Change to your default branch
-        PYTHON_VIRTUALENV = 'python-venv'  // Virtual environment name
+        // Define environment variables (optional)
+        PYTHON_VENV = "python-venv"
     }
-
+    
     stages {
-        stage('Checkout') {
-            steps {
-                // Checkout the code from GitHub repository
-                git branch: "${BRANCH}", credentialsId: "${GITHUB_CREDENTIALS}", url: 'https://github.com/DilipK10/devops.git'
-            }
-        }
-
-       stage('Setup Python Environment') {
+        // Clone the repository from GitHub
+        stage('Clone') {
             steps {
                 script {
-                    // Check if python3-venv is installed
+                    echo 'Cloning repository from GitHub...'
+                    // Clone the repo using Git
+                    checkout scm
+                }
+            }
+        }
+        
+        // Set up Python environment and install dependencies
+        stage('Build') {
+            steps {
+                script {
+                    echo 'Setting up Python environment...'
+                    
+                    // Install python3-venv if not already installed
                     sh '''
-                    if ! dpkg -l | grep -q python3-venv; then
-                        echo "python3-venv not found, installing..."
-                        sudo apt-get update && sudo apt-get install -y python3-venv
-                    fi
-
-                    # Create a Python virtual environment
-                    python3 -m venv ${PYTHON_VIRTUALENV}
+                    dpkg -l | grep -q python3-venv || sudo apt-get update && sudo apt-get install -y python3.10-venv
                     '''
-                    // Now use bash to activate the virtualenv and install dependencies
+                    
+                    // Create a virtual environment
                     sh '''
-                    bash -c "source ${PYTHON_VIRTUALENV}/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"
+                    python3 -m venv ${PYTHON_VENV}
+                    source ${PYTHON_VENV}/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
                     '''
                 }
             }
         }
-
-        stage('Run Python Script') {
+        
+        // Run tests using pytest
+        stage('Test') {
             steps {
                 script {
+                    echo 'Running tests...'
+                    // Run pytest to execute tests
                     sh '''
-                    bash -c "source ${PYTHON_VIRTUALENV}/bin/activate && python your_script.py"
+                    source ${PYTHON_VENV}/bin/activate
+                    pytest --maxfail=1 --disable-warnings -q
                     '''
                 }
             }
         }
-
-        stage('Run Tests') {
-            steps {
-                script {
-                    sh '''
-                    bash -c "source ${PYTHON_VIRTUALENV}/bin/activate && pytest --maxfail=1 --disable-warnings -q"
-                    '''
-                }
-            }
-        }
-
+        
+        // Deploy the application (you can customize this to your needs)
         stage('Deploy') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
-                    echo 'Deploying the application to production...'
+                    echo 'Deploying application...'
+                    // Add deployment commands here (e.g., AWS, GCP, Kubernetes, etc.)
+                    // For example, using Docker, Kubernetes, or cloud-specific commands:
+                    // sh 'docker build -t my-app .'
+                    // sh 'docker push my-app'
+                    // sh 'kubectl apply -f deploy.yaml'
+                    
+                    // In this example, we just echo a deployment message
+                    echo "Deployment commands go here"
                 }
             }
         }
     }
-
+    
     post {
         always {
+            // Clean up environment after the pipeline run
             echo 'Cleaning up...'
-            sh 'rm -rf ${PYTHON_VIRTUALENV}'
+            sh "rm -rf ${PYTHON_VENV}"
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Pipeline completed successfully.'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'Pipeline failed. Check the logs for details.'
         }
     }
 }
