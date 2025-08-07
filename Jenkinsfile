@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Environment variables
-        GITHUB_CREDENTIALS = 'github-credentials-id'  // Replace with your GitHub credentials ID in Jenkins
+        GITHUB_CREDENTIALS = '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'  // Replace with your GitHub credentials ID in Jenkins
         BRANCH = 'main'  // Change to your default branch
         PYTHON_VIRTUALENV = 'python-venv'  // Virtual environment name
     }
