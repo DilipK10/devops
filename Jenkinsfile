@@ -2,31 +2,27 @@ pipeline {
     agent any
     
     environment {
-        // Define environment variables (optional)
         PYTHON_VENV = "python-venv"
     }
     
     stages {
-        // Clone the repository from GitHub
         stage('Clone') {
             steps {
                 script {
                     echo 'Cloning repository from GitHub...'
-                    // Clone the repo using Git
                     checkout scm
                 }
             }
         }
         
-        // Set up Python environment and install dependencies
         stage('Build') {
             steps {
                 script {
                     echo 'Setting up Python environment...'
                     
-                    // Install python3-venv if not already installed
+                    // Check if python3-venv is installed, if not, skip it
                     sh '''
-                    dpkg -l | grep -q python3-venv || sudo apt-get update && sudo apt-get install -y python3.10-venv
+                    dpkg -l | grep -q python3-venv || echo "python3-venv is already installed"
                     '''
                     
                     // Create a virtual environment
@@ -40,12 +36,10 @@ pipeline {
             }
         }
         
-        // Run tests using pytest
         stage('Test') {
             steps {
                 script {
                     echo 'Running tests...'
-                    // Run pytest to execute tests
                     sh '''
                     source ${PYTHON_VENV}/bin/activate
                     pytest --maxfail=1 --disable-warnings -q
@@ -54,18 +48,10 @@ pipeline {
             }
         }
         
-        // Deploy the application (you can customize this to your needs)
         stage('Deploy') {
             steps {
                 script {
                     echo 'Deploying application...'
-                    // Add deployment commands here (e.g., AWS, GCP, Kubernetes, etc.)
-                    // For example, using Docker, Kubernetes, or cloud-specific commands:
-                    // sh 'docker build -t my-app .'
-                    // sh 'docker push my-app'
-                    // sh 'kubectl apply -f deploy.yaml'
-                    
-                    // In this example, we just echo a deployment message
                     echo "Deployment commands go here"
                 }
             }
@@ -74,7 +60,6 @@ pipeline {
     
     post {
         always {
-            // Clean up environment after the pipeline run
             echo 'Cleaning up...'
             sh "rm -rf ${PYTHON_VENV}"
         }
